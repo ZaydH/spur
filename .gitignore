@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# Miscellaneous OS Files
+*.swp
+.DS_Store
