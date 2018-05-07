@@ -32,7 +32,7 @@
 #include "stack.h"
 #include "solver_config.h"
 #include "model_sampler.h"
-#include "top_tree_sampler.h"
+//#include "top_tree_sampler.h"
 
 typedef AltComponentAnalyzer ComponentAnalyzer;
 
@@ -181,14 +181,11 @@ class ComponentManager {
    * @param top Top of the decision stack.
    * @param literal_stack_ Current assigned literal stack.
    * @param samples Current reservoir sample set.
-   * @param is_valid_top_tree_store_point True if it is a currently valid point to store a top
-   * tree element.
    * @return true if unprocessed components remain.
    */
   inline bool findNextRemainingComponentOf(StackLevel &top,
                                            const std::vector<LiteralID> &literal_stack,
-                                           SamplesManager &samples,
-                                           const bool &is_valid_top_tree_store_point);
+                                           SamplesManager &samples);
   /**
    * Examines the top of the decision stack.  The function will
    * try to decompose the component if applicable.  For any new component,
@@ -202,8 +199,7 @@ class ComponentManager {
    * @param literal_stack Current assigned literal stack.
    */
   inline void recordRemainingCompsFor(StackLevel &top,
-                                      const std::vector<LiteralID> &literal_stack,
-                                      const bool &is_valid_top_tree_store_point);
+                                      const std::vector<LiteralID> &literal_stack);
   /**
    * Build residual formula component.  It uses the contents of the literal stack
    * to decide how to construct remaining components.
@@ -279,11 +275,10 @@ void ComponentManager::sortComponentStackRange(unsigned long start, unsigned lon
 
 bool ComponentManager::findNextRemainingComponentOf(StackLevel &top,
                                                     const std::vector<LiteralID> &literal_stack,
-                                                    SamplesManager &samples,
-                                                    const bool &is_valid_top_tree_store_point) {
+                                                    SamplesManager &samples) {
   // record Remaining Components if there are none!
   if (component_stack_.size() <= top.remaining_components_ofs())
-    recordRemainingCompsFor(top, literal_stack, is_valid_top_tree_store_point);
+    recordRemainingCompsFor(top, literal_stack);
 
   assert(!top.branch_found_unsat());
   if (top.hasUnprocessedComponents()) {
@@ -325,12 +320,6 @@ bool ComponentManager::findNextRemainingComponentOf(StackLevel &top,
     }
     // DebugZH
 //    assert(samples.VerifySolutions(statistics_.input_file_, true));
-  } else if (is_valid_top_tree_store_point) {
-    assert(config_.perform_top_tree_sampling);
-    // Store the top tree sample if a cylinder and no component split and above max depth.
-    TopTreeSampler::StoreSample(top.getActiveModelCount(),
-                                top.getSamplerSolutionMultiplier(), literal_stack,
-                                top.emancipated_vars(), TopTreeNodeType::CYLINDER);
   }
   return false;
 }
@@ -343,12 +332,9 @@ bool ComponentManager::findNextRemainingComponentOf(StackLevel &top,
  *
  * @param top Element at the top of the decision stack.
  * @param literal_stack_ Current assigned literal stack.
- * @param is_valid_top_tree_store_point True if it is a currently valid point to store a top
- * tree element.
  */
 void ComponentManager::recordRemainingCompsFor(StackLevel &top,
-                                               const std::vector<LiteralID> &literal_stack,
-                                               const bool &is_valid_top_tree_store_point) {
+                                               const std::vector<LiteralID> &literal_stack) {
   Component & super_comp = superComponentOf(top);
   VariableIndex new_comps_start_ofs = component_stack_.size();  // Location to store new comp if any
 
@@ -394,8 +380,6 @@ void ComponentManager::recordRemainingCompsFor(StackLevel &top,
     long split_width = component_stack_.size() - new_comps_start_ofs;
     if (split_width > 1 || (split_width == 1 && !cached_assn.empty())) {
       top.setAsComponentSplit();
-      if (is_valid_top_tree_store_point)
-        TopTreeSampler::StartComponentSplit(literal_stack, top.emancipated_vars());
       if (config_.verbose) {
         std::stringstream ss;
         ss << "Component #" << (new_comps_start_ofs - 1) << " split into " << (split_width)

@@ -89,7 +89,7 @@ struct SolverConfiguration {
    *
    * Default is approximately 27 hours.
    */
-  unsigned long time_bound_seconds = 100000;
+  uint64_t time_bound_seconds = UINT64_MAX;
   /**
    * Controls whether verbose state tracking is enabled.  When
    * verbose is enabled, a basic trace printing is also enabled.

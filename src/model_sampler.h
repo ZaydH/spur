@@ -738,7 +738,7 @@ class SamplesManager {
                        const mpz_class &solution_weight,
                        const mpz_class &weight_multiplier,
                        const AltComponentAnalyzer &ana,
-                       unsigned literal_stack_ofs,
+                       VariableIndex literal_stack_ofs,
                        const std::vector<VariableIndex>& freed_vars,
                        const std::vector<CacheEntryID> &cached_comp_ids,
                        const CachedAssignment& cached_assn,

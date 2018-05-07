@@ -25,7 +25,7 @@
 
 #include "stack.h"
 #include "model_sampler.h"
-#include "top_tree_sampler.h"
+//#include "top_tree_sampler.h"
 
 
 // Satisfy the linker by initializing the static variables
@@ -63,7 +63,7 @@ void SamplesManager::exportFinal(std::ostream &out,
   stream << std::fixed << std::setprecision(2)
          << static_cast<double>(average_rem_var_cnt)/statistics.numb_second_pass_vars_.size();
   out << "\n";
-  TopTreeSampler::printTreeSolverStatistics(out);
+//  TopTreeSampler::printTreeSolverStatistics(out);
   out << "avg_second_pass_var," << stream.str() << "\n"
       << "execution_time," << statistics.sampler_time_elapsed_ << "\n"
       << "pass1_time," << statistics.sampler_pass_1_time_ << "\n"
@@ -91,7 +91,7 @@ void SamplesManager::reservoirSample(const Component * active_comp,
                                      const mpz_class &solution_weight,
                                      const mpz_class &weight_multiplier,
                                      const AltComponentAnalyzer &ana,
-                                     const unsigned literal_stack_ofs,
+                                     const VariableIndex literal_stack_ofs,
                                      const std::vector<VariableIndex> &freed_vars,
                                      const std::vector<CacheEntryID> &cached_comp_ids,
                                      const CachedAssignment &cached_assn,
@@ -253,21 +253,19 @@ void SamplesManager::buildCnfClauseLiterals(const std::string &input_file_path,
                                             std::vector<std::vector<signed long>> &clauses) {
   // BEGIN File input
   std::ifstream input_file(input_file_path);
-  if (!input_file) {
-    std::cerr << "Cannot open file: " << input_file_path << "\n"
-              << "Solution validation failed." << std::endl;
-    exit(EXIT_FAILURE);
-  }
+  if (!input_file)
+    ExitWithError("Cannot open file " + input_file_path + " Solution validation failed.", EX_IOERR);
+
   // Remove the comments header
   VariableIndex nVars;
   ClauseIndex nCls;
-  const unsigned max_ignore = 1000000;  // Max number of characters on line to ignore.
+  const uint64_t max_ignore = UINT64_MAX;  // Max number of characters on line to ignore.
   std::string idstring;
   char c;
   while (input_file >> c && c != 'p')
     input_file.ignore(max_ignore, '\n');
   if (!(input_file >> idstring && idstring == "cnf" && input_file >> nVars && input_file >> nCls))
-    ExitWithError("Invalid CNF file\n" "Solution validation failed.");
+    ExitWithError("Invalid CNF file\n" "Solution validation failed.", EX_DATAERR);
 
   // Analyze each clause and add literals/variables as appropriate.
   long lit;

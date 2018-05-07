@@ -33,7 +33,7 @@
 #include "solver_config.h"
 #include "model_sampler.h"
 #include "cached_assignment.h"
-#include "top_tree_sampler.h"
+//#include "top_tree_sampler.h"
 
 
 class StopWatch {
@@ -93,7 +93,7 @@ class StopWatch {
    *
    * @param seconds New time bound.
    */
-  void setTimeBound(long int seconds) {
+  void setTimeBound(uint64_t seconds) {
     time_bound_ = seconds;
   }
   // ZH Appears to neither be implemented or used.
@@ -103,7 +103,7 @@ class StopWatch {
   timeval start_time_;
   timeval stop_time_;
 
-  long int time_bound_ = LONG_MIN;
+  uint64_t time_bound_ = UINT64_MAX;
 
   /**
    * Interval used to separate events.  It is set by default to 60s.
@@ -323,16 +323,6 @@ class Solver: public Instance {
    * @param partial_assn Partial assignment to constrain the input CNF formula.
    */
   void reservoir_sample_models(const PartialAssignment &partial_assn, Solver &temp_solver);
-  /**
-   * Sample the top of the tree before performing two pass sampling.
-   */
-  void sample_top_tree();
-  /**
-   * Run a single iteration of top tree sampling.
-   *
-   * @param partial_assn Partial assignment to constrain the input CNF formula.
-   */
-  void RunTopTreeSampling(const PartialAssignment &partial_assn = PartialAssignment());
 //  /**
 //   * MT - we assert that the formula is consistent and has not been
 //   * found UNSAT yet hard wires all assertions in the literal stack
@@ -680,17 +670,17 @@ class Solver: public Instance {
     return samples_stack_.size() == 1
            || (samples_stack_.size() == 2 && samples_stack_[0].model_count() == 0);
   }
-  /**
-   * Checks whether the current point in the solver execution is valid for storing a top
-   * tree sample.
-   *
-   * @return true If there none of the current literal assignments led to a component split,
-   * the current depth is below the maximum and top tree mode is enabled.
-   */
-  inline bool IsValidTopTreeNodeStorePoint() {
-    return config_.perform_top_tree_sampling && set_variable_depth_ < config_.max_top_tree_depth_;
-//           && HasNoUpperComponentSplit();
-  }
+//  /**
+//   * Checks whether the current point in the solver execution is valid for storing a top
+//   * tree sample.
+//   *
+//   * @return true If there none of the current literal assignments led to a component split,
+//   * the current depth is below the maximum and top tree mode is enabled.
+//   */
+//  inline bool IsValidTopTreeNodeStorePoint() {
+//    return config_.perform_top_tree_sampling && set_variable_depth_ < config_.max_top_tree_depth_;
+////           && HasNoUpperComponentSplit();
+//  }
   /**
    * Link the current solver's configuration and statistics to the static representations
    * in the stack and samples manager.

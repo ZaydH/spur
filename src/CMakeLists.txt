@@ -17,7 +17,7 @@ SET(SOURCES
         solver.cpp
         stack.cpp
         statistics.cpp
-        top_tree_sampler.cpp)
+    )
 
 
 ADD_LIBRARY(libSpur ${SOURCES} component_types)
