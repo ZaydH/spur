@@ -47,5 +47,5 @@ The second item in the tuple is a variable assignment.  Variables are ordered fr
 
 # Special Thanks
 
-The SPUR sampler is built on top of (sharpSAT)[https://github.com/marcthurley/sharpSAT], which was developed by Marc Thurley.
+The SPUR sampler is built on top of [sharpSAT](https://github.com/marcthurley/sharpSAT), which was developed by Marc Thurley.
 
