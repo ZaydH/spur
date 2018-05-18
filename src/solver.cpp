@@ -319,9 +319,10 @@ inline void Solver::FillPartialAssignments(Solver &temp_solver) {
     statistics_.numb_second_pass_vars_.push_back(num_unset_vars);
     assert(num_unset_vars < statistics_.num_variables_);
     if (!config_.quiet)
-      std::cout << "Completing sample #" << group_cnt  << " of " << grouped_samples.size()
-                << " which has " << num_unset_vars << " variables unset and " << new_sample_count
-                << " samples." << std::endl;
+      std::cout << "Completing sample #" << group_cnt << " of " << grouped_samples.size()
+                << " which has " << num_unset_vars << " variable"
+                << ((num_unset_vars == 1) ? "" : "s") << " unset and " << new_sample_count
+                << " sample" << ((new_sample_count == 1) ? "" : "s") << "." << std::endl;
 
     // Build an intermediary solver
     Solver new_solver = temp_solver;
@@ -513,7 +514,7 @@ void Solver::decideLiteral() {
   }
 
   float max_score = -1;
-  unsigned max_score_var = 0;
+  VariableIndex max_score_var = 0;
   // Select the variable with the highest score as the branch variable
   for (auto it = comp_manager_.superComponentOf(stack_.top()).varsBegin();
        *it != varsSENTINEL; it++) {

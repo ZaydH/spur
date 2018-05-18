@@ -79,7 +79,7 @@ class ComponentManager {
    * @param assn Sample assignment to encode in the cache with the model count.
    * @param component Actual component to get the variables.
    */
-  void cacheModelCountAndAssignment(const unsigned stack_comp_id, const mpz_class &value,
+  void cacheModelCountAndAssignment(const VariableIndex stack_comp_id, const mpz_class &value,
                                     const SampleAssignment &assn, const Component &component) {
     mpz_class combined_value = 0;
     mpz_class temp_value = 0;

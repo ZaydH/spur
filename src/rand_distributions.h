@@ -18,7 +18,6 @@
 #define PROJECT_RANDOM_H
 
 #include <gmpxx.h>
-#include <limits.h>
 
 #include <chrono> // NOLINT (build/c++11)
 #include <cstdlib>
@@ -104,7 +103,7 @@ class Random{
    */
   static SampleSize binom(SampleSize n, double p) {
     std::binomial_distribution<> d(n, p);
-    return static_cast<SampleSize>(d(rd_));
+    return static_cast<SampleSize>(d(rng_));
   }
   /**
    * Using a modified version of the Fisher-Yates shuffle, the first \p target_size elements of the
@@ -142,7 +141,7 @@ class Random{
    */
   template<typename T>
   static void shuffle(std::vector<T> &vec) {
-    std::shuffle(vec.begin(), vec.end(), rd_);
+    std::shuffle(vec.begin(), vec.end(), rng_);
   }
 
   class Mpz {
@@ -280,7 +279,7 @@ class Random{
   template<typename T>
   static void shuffle(typename std::vector<T>::iterator begin, // Dependent types so add the
                       typename std::vector<T>::iterator end) {  // "typename" keyword.
-    std::shuffle(begin, end, rd_);
+    std::shuffle(begin, end, rng_);
   }
 
  private:
