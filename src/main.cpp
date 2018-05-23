@@ -13,6 +13,8 @@
  * LICENSE file for details.
  */
 
+#include "sysexits.h"
+
 #include <vector>
 #include <iostream>
 #include "solver.h"
@@ -63,5 +65,5 @@ int printInputArgumentDescription() {
             << "\t -t [s] \t Set time bound to s seconds\n"
             << "\t -cs [n]\t Set max cache size to n MB\n"
             << std::flush;
-  exit(EXIT_SUCCESS);
+  exit(EX_USAGE);
 }

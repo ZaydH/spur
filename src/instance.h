@@ -18,6 +18,7 @@
 #ifndef INSTANCE_H_
 #define INSTANCE_H_
 
+#include <sysexits.h>
 #include <limits.h>
 
 #include <cassert>

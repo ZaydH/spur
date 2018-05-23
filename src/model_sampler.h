@@ -561,6 +561,14 @@ class SampleAssignment {
   const std::vector<CacheEntryID>& cache_comp_ids() const {
     return cache_comp_ids_;
   }
+  /**
+   * Clears all stored cached component IDs.  There is generally not a reason to call this
+   * function outside of when filling a partial assignment.  Care should be taken when using
+   * this function.
+   */
+  void clear_cache_comp_ids() {
+    cache_comp_ids_.clear();
+  }
 //  /**
 //   * Generate a unique key for the cached components in the sample assignment.
 //   *
@@ -738,7 +746,7 @@ class SamplesManager {
                        const mpz_class &solution_weight,
                        const mpz_class &weight_multiplier,
                        const AltComponentAnalyzer &ana,
-                       unsigned literal_stack_ofs,
+                       VariableIndex literal_stack_ofs,
                        const std::vector<VariableIndex>& freed_vars,
                        const std::vector<CacheEntryID> &cached_comp_ids,
                        const CachedAssignment& cached_assn,
@@ -802,7 +810,7 @@ class SamplesManager {
     assert(verifyPostStitchingCorrectness(other));
   }
   /**
-   * Perform stitching permutation generation by creating an vector of size tot_num_samples_ (|S|)
+   * Perform stitching permutation generation by creating a vector of size tot_num_samples_ (|S|)
    * and shuffling it via a Fisher-Yates shuffle which has running time Theta(|S|).
    *
    * @param other SamplesManager that will be stitched to the implicit SamplesManager.
@@ -830,13 +838,6 @@ class SamplesManager {
     SampleSize sample_offset = 0;
     for (auto this_itr = samples_.begin(); this_itr != samples_.end(); ) {
       SampleSize sample_end = sample_offset + this_itr->sample_count();
-//      // Sort the subindices for each "this" sample to make it easier to count and organize
-//      if (this_itr->sample_count() > 1) {
-//        auto itr_begin = other_sample_order.begin(), itr_end = other_sample_order.begin();
-//        std::advance(itr_begin, sample_offset);
-//        std::advance(itr_end, sample_end);
-//        std::sort(itr_begin, itr_end);
-//      }
       std::vector<SampleSize> samples_per_element(other_sample_order.size(), 0);
       for (SampleSize sample_cnt = sample_offset; sample_cnt < sample_end; ++sample_cnt)
         samples_per_element[other_sample_order[sample_cnt]]++;
@@ -979,6 +980,14 @@ class SamplesManager {
     for (auto &sample : samples_)
       sample.addCachedCompIds(cached_comp_ids);
   }
+  /**
+   * Transfers the variable assignments from a previous sampler run and uses them to update
+   * the implicit sample manager.  This is done when filling a partial assignment since multiple
+   * samples with the same cached component are run together even if the rest of their partial
+   * assignment is different.
+   *
+   * @param others Existing samples from a previous solver run.
+   */
   void TransferVariableAssignments(ListOfSamples &others) {
     std::vector<VariableIndex> unset_vars = others.front().GetRemainingVariables();
 
@@ -991,8 +1000,10 @@ class SamplesManager {
     }
 
     SampleSize sample_count = 0;
-    for (auto &other : others)
+    for (auto &other : others) {
       sample_count += other.sample_count();
+      other.clear_cache_comp_ids(); // Out of data cache ids from previous run.
+    }
     assert(sample_count == this->num_samples());
     SamplesManager others_manager(sample_count, *config_);
     others_manager.solution_count_ = 1;

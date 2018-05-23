@@ -317,7 +317,7 @@ bool Instance::createfromFile(const std::string &file_name) {
   // BEGIN File input
   std::ifstream input_file(statistics_.input_file_);
   if (!input_file)
-    ExitWithError("Cannot open file: " + statistics_.input_file_);
+    ExitWithError("Cannot open file: " + statistics_.input_file_, EX_IOERR);
 
   char c;
   while ((input_file >> c) && c != 'p')
@@ -326,11 +326,11 @@ bool Instance::createfromFile(const std::string &file_name) {
   long nVars = -1, nCls = -1;
   if (!((input_file >> idstring) && idstring == "cnf" && (input_file >> nVars)
       && (input_file >> nCls)))
-    ExitWithError("Invalid CNF file");
+    ExitWithError("Invalid CNF file", EX_PROTOCOL);
   else if (nVars <= 0)
-    ExitWithError("Invalid variable count.  At least one variable is required.");
+    ExitWithError("Invalid variable count.  At least one variable is required.", EX_PROTOCOL);
   else if (nCls < 0)
-    ExitWithError("Invalid clause count.  A negative clause count is invalid.");
+    ExitWithError("Invalid clause count.  A negative clause count is invalid.", EX_PROTOCOL);
 
   variables_.resize(nVars + FIRST_VAR);
   literal_values_.resize(nVars + FIRST_VAR, X_TRI);

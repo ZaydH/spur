@@ -19,28 +19,9 @@
 #include <string>
 #include "statistics.h"
 
-//void DataAndStatistics::writeToFile(const std::string & file_name) {
-//  std::ofstream out(file_name, std::ios_base::app);
-//  unsigned long pos = input_file_.find_last_of("/\\");
-//  out << "<tr>" << std::endl;
-//  out << "<td>" << input_file_.substr(pos + 1) << "</td>" << std::endl;
-//  out << "<td>" << num_original_variables_ << "</td>" << std::endl;
-//  out << "<td>" << num_original_clauses_ << "</td>" << std::endl;
-//  out << "<td>" << num_decisions_ << "</td>" << std::endl;
-//  out << "<td>" << sampler_time_elapsed_ << "</td>" << std::endl;
-//
-//  std::string s = final_solution_count_.get_str();
-//  if (final_solution_count_ == 0)
-//    s = "UNSAT";
-//  out << "<td>" << s << "</td>" << std::endl;
-//  out << "</tr>" << std::endl;
-//}
+
 
 void DataAndStatistics::printShort() {
-  if (exit_state_ == SolverExitState::TIMEOUT) {
-    std::cout << "\n" << " TIMEOUT !" << std::endl;
-    return;
-  }
   std::cout << "\n\n"
             << "variables (total / active / free)\t" << num_variables_ << "/"
             << num_used_variables_ << "/" << num_variables_ - num_used_variables_

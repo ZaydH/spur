@@ -94,22 +94,19 @@ class DataAndStatistics {
    * Number of times a branch variable is set.  It
    * does not include BCP variable setting.
    */
-  unsigned long num_decisions_ = 0;
-//  /// number of all implications derived
-//  unsigned long num_implications_ = 0;
-  //
+  uint64_t num_decisions_ = 0;
   /**
    * Number of all failed literal detected.
    */
-  unsigned long num_failed_literals_detected_ = 0;
-  unsigned long num_failed_literal_tests_ = 0;
+  uint64_t num_failed_literals_detected_ = 0;
+  uint64_t num_failed_literal_tests_ = 0;
   /**
    * Number of all conflicts encountered.
    */
-  unsigned long num_conflicts_ = 0;
+  uint64_t num_conflicts_ = 0;
 
   // number of clauses overall learned
-  unsigned long num_clauses_learned_ = 0;
+  uint64_t num_clauses_learned_ = 0;
   /**
    * Maximum number of embedded components splits.
    */
@@ -341,23 +338,6 @@ class DataAndStatistics {
     else
       num_long_clauses_++;
   }
-
-//  /**
-//   * Prints to the console the file solution count.
-//   */
-//  void print_final_solution_count();
-//  /**
-//   * Prints statistic information regarding the CNF to a file including, the final
-//   * solution count, number of decisions, original formula variable and clause
-//   * counts, and elpased time.
-//   *
-//   * If the formula is not satisfiable, that will be specially printed.
-//   *
-//   * Format of the output is basic HTML table format.
-//   *
-//   * @param file_name Path of output file to write
-//   */
-//  void writeToFile(const std::string & file_name);
 
   void printShort();
   /**

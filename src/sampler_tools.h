@@ -22,6 +22,7 @@
 #define END_ESCAPE "m"
 #define RESET_CONSOLE_COLOR (ESCAPE_CHAR "0" END_ESCAPE)
 
+#include <sysexits.h>
 #include <sys/stat.h>
 
 #include <iostream>
@@ -123,9 +124,17 @@ inline void PrintError(const std::stringstream &msg) { PrintError(msg.str()); }
  *
  * @param msg Error message to be printed
  */
-inline void ExitWithError(const std::string &msg) {
+inline void ExitWithError(const std::string &msg, const int err_code=EXIT_FAILURE) {
   PrintError(msg);
-  exit(EXIT_FAILURE);
+  exit(err_code);
+}
+/**
+ * Exits the program due to an invalid input argument/
+ *
+ * @param msg Error message to be printed
+ */
+inline void ExitInvalidParam(const std::string &msg) {
+  ExitWithError(msg, EX_DATAERR);
 }
 /**
  * Checks if the specified file exists on disk.

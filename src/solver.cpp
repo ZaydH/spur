@@ -24,7 +24,7 @@
 
 #include "primitive_types.h"
 #include "solver.h"
-#include "top_tree_sampler.h"
+//#include "top_tree_sampler.h"
 #include "solver_config.h"
 #include "sampler_tools.h"
 
@@ -78,7 +78,7 @@ bool Solver::prepFailedLiteralTest() {
   unsigned long last_size;
   do {
     last_size = literal_stack_.size();
-    for (unsigned v = 1; v < variables_.size(); v++)
+    for (unsigned v = 1; v < variables_.size(); v++) {
       if (isActive(v)) {
         unsigned long sz = literal_stack_.size();
         setLiteralIfFree(LiteralID(v, true));
@@ -109,6 +109,7 @@ bool Solver::prepFailedLiteralTest() {
           }
         }
       }
+    }
   } while (literal_stack_.size() > last_size);
 
   return true;
@@ -139,17 +140,12 @@ void Solver::sample_models() {
   }
 
   SampleAssignment::set_num_var(statistics_.num_variables_);
-//  InitializeSamplerStructures(statistics_.num_variables_);
 
-  if (config_.perform_top_tree_sampling) {
-    sample_top_tree();
-  } else {
-    Solver temp_solver(config_, statistics_);
-    temp_solver.createfromFile(statistics_.input_file_);
-    LinkConfigAndStatistics();
+  Solver temp_solver(config_, statistics_);
+  temp_solver.createfromFile(statistics_.input_file_);
+  LinkConfigAndStatistics();
 
-    reservoir_sample_models(PartialAssignment(), temp_solver);
-  }
+  reservoir_sample_models(PartialAssignment(), temp_solver);
 
   ReportSharpSatResults();
   PrintFinalSamplerResults();
@@ -172,91 +168,6 @@ void Solver::reservoir_sample_models(const PartialAssignment &partial_assn, Solv
   statistics_.sampler_time_elapsed_ = sampler_stopwatch_.getElapsedSeconds();
   statistics_.sampler_pass_2_time_ = statistics_.sampler_time_elapsed_
                                                               - statistics_.sampler_pass_1_time_;
-}
-
-void Solver::RunTopTreeSampling(const PartialAssignment &partial_assn) {
-  TopTreeSampler::start(config_, statistics_);
-
-  solve(partial_assn);
-  if (statistics_.final_solution_count_ == 0)
-    return;
-  // Handle a top of the stack component split
-  if (stack_.top().isComponentSplit()) {
-    mpz_class actual_multiplier = 1;  // Multiplier already baked into final count
-    TopTreeSampler::CloseComponentSplit(StackLevel::componentSplitDepth(),
-                                        statistics_.final_solution_count_,
-                                        stack_.top().getSamplerSolutionMultiplier(),
-                                        actual_multiplier);
-    stack_.top().unsetAsComponentSplit();
-  }
-  TopTreeSampler::FinalizeTopTreeSamples();
-}
-
-void Solver::sample_top_tree() {
-  // Initialize all one time structures needed by top-tree
-  TopTreeSampler::initialize(config_, statistics_);
-
-  // Run top tree on the complete formula and return in the case of UNSAT.
-  RunTopTreeSampling();
-  TopTreeSampler::remaining_formulas.RoundCompleted();
-  if (statistics_.final_solution_count_ == 0)
-    return;
-
-  // Free the memory to be used by the descendant solver's cache
-  unit_clauses_.clear();
-  comp_manager_.initialize(literals_, literal_pool_, config_.quiet);
-  deleteConflictClauses(true);
-
-  // Run Top Tree on any unfinished assignments
-  Solver temp_solver(config_, statistics_);
-  temp_solver.createfromFile(statistics_.input_file_);
-  while (TopTreeSampler::remaining_formulas.has_added_any()) {
-    SampleSize num_samples;
-    PartialAssignment partial_assn;
-    std::vector<VariableIndex> emancipated_vars;
-    while (TopTreeSampler::remaining_formulas.GetNext(num_samples, partial_assn,
-                                                      emancipated_vars)) {
-      Solver subtree_solver = temp_solver;
-      subtree_solver.config_.num_samples_ = num_samples;
-      subtree_solver.RunTopTreeSampling(partial_assn);
-    }
-    TopTreeSampler::remaining_formulas.RoundCompleted();
-  }
-  DisableTopTreeSampling();
-  if (!config_.quiet)
-    PrintInColor("Top-tree sampling completed.", COLOR_CYAN);
-  assert(TopTreeSampler::output_partials.has_added_any());
-
-  // Stages #2 & #3: Run reservoir sampling on the partial assignments found in top-tree sampling.
-  final_samples_.clear();
-  temp_solver.DisableTopTreeSampling();
-  SampleSize num_samples;
-  PartialAssignment partial_assn;
-  std::vector<VariableIndex> emancipated_vars;
-  SampleSize total_size = 0;
-  while (TopTreeSampler::output_partials.GetNext(num_samples, partial_assn, emancipated_vars)) {
-    total_size += num_samples;
-//    SamplesManager::set_num_samples(num_samples);
-    Solver new_solver = temp_solver;
-//    Solver new_solver = Solver(config_, statistics_, num_samples, true);
-//    new_solver.createfromFile(statistics_.input_file_);
-    new_solver.config_.num_samples_ = num_samples;
-    new_solver.config_.perform_two_pass_sampling_ = true;
-
-    new_solver.reservoir_sample_models(partial_assn, temp_solver);
-    final_samples_.append(new_solver.final_samples_);
-  }
-  assert(config_.num_samples_ == final_samples_.num_samples());
-  // ToDo restore the code to clean-up the top tree files.
-//  TopTreeSampler::cleanup();
-
-  LinkConfigAndStatistics();
-//  SamplesManager::RestoreDefaultSampleSize();
-
-  sampler_stopwatch_.stop();
-  statistics_.sampler_time_elapsed_ = sampler_stopwatch_.getElapsedSeconds();
-  statistics_.sampler_pass_2_time_ = statistics_.sampler_time_elapsed_
-                                     - statistics_.sampler_pass_1_time_;
 }
 
 
@@ -285,9 +196,9 @@ void Solver::PrintFinalSamplerResults() {
 //  bool valid_samples = final_samples_.VerifySolutions(statistics_.input_file_,
 //                                                      config_.skip_partial_assignment_fill);
 //  if (!valid_samples)
-//    ExitWithError("INVALID SAMPLES");
+//    ExitWithError("INVALID SAMPLES", EX_SOFTWARE);
 //  if (!final_samples_.IsComplete())
-//    ExitWithError("INCOMPLETE SAMPLES");
+//    ExitWithError("INCOMPLETE SAMPLES", EX_SOFTWARE);
 }
 
 
@@ -303,6 +214,7 @@ void Solver::PerformInitialSampling() {
   // If the solver has not been shown to be UNSAT by the preprocess,
   // run the basic sampler and model count
   statistics_.exit_state_ = countSAT();
+
   unused_vars_ = stack_.top().emancipated_vars();
   statistics_.set_final_solution_count(stack_.top().getTotalModelCount());
   statistics_.num_long_conflict_clauses_ = num_conflict_clauses();
@@ -407,9 +319,10 @@ inline void Solver::FillPartialAssignments(Solver &temp_solver) {
     statistics_.numb_second_pass_vars_.push_back(num_unset_vars);
     assert(num_unset_vars < statistics_.num_variables_);
     if (!config_.quiet)
-      std::cout << "Completing sample #" << group_cnt  << " of " << grouped_samples.size()
-                << " which has " << num_unset_vars << " variables unset and " << new_sample_count
-                << " samples." << std::endl;
+      std::cout << "Completing sample #" << group_cnt << " of " << grouped_samples.size()
+                << " which has " << num_unset_vars << " variable"
+                << ((num_unset_vars == 1) ? "" : "s") << " unset and " << new_sample_count
+                << " sample" << ((new_sample_count == 1) ? "" : "s") << "." << std::endl;
 
     // Build an intermediary solver
     Solver new_solver = temp_solver;
@@ -436,7 +349,7 @@ inline void Solver::FillPartialAssignments(Solver &temp_solver) {
     sample_itr = final_samples_.samples().erase(sample_itr);
   }
   if (tot_count != config_.num_samples_)
-    ExitWithError("Not all samples tested");
+    ExitWithError("Not all samples tested", EX_SOFTWARE);
 
   if (!config_.quiet)
     std::cout << "STAGE #2 - COMPLETE" << std::endl;
@@ -450,8 +363,6 @@ inline void Solver::FillPartialAssignments(Solver &temp_solver) {
 bool Solver::InitializeSolverAndPreprocess(const PartialAssignment &partial_assn) {
   statistics_.set_final_solution_count(0);  // Zero out initial model count
 
-//  if (config_.store_sampled_models())
-//    InitializeSamplerStructures(statistics_.num_variables_);
   applyPartialAssignment(partial_assn);
 
   initStack(num_variables());
@@ -479,9 +390,6 @@ bool Solver::InitializeSolverAndPreprocess(const PartialAssignment &partial_assn
       std::cout << "\nFOUND UNSAT DURING PREPROCESSING " << std::endl;
     return notfoundUNSAT;
   }
-
-//  if (config_.perform_random_sampling_ && partial_assn.empty())
-//    InitializeSampleCount(config_.num_samples_);
 
   // If preprocessor did not find the formula to be unsatisfiable, then
   // get ready for model counting
@@ -546,13 +454,12 @@ SolverExitState Solver::countSAT() {
   PushNewSamplesManagerOnStack();
   while (true) {
     while (comp_manager_.findNextRemainingComponentOf(stack_.top(), literal_stack_,
-                                                      samples_stack_.back(),
-                                                      IsValidTopTreeNodeStorePoint())) {
+                                                      samples_stack_.back())) {
       decideLiteral();
       if (sampler_stopwatch_.timeBoundBroken()) {
         if (!config_.quiet)
-          PrintWarning("TIMEOUT.");
-        return SolverExitState::TIMEOUT;
+          PrintError("TIMEOUT");
+        exit(EXIT_TIMEOUT);
       }
 
       if (sampler_stopwatch_.interval_tick())
@@ -603,13 +510,11 @@ void Solver::decideLiteral() {
         prev_top->markFirstComponentComplete();
       }
       PushNewSamplesManagerOnStack();
-      if (IsValidTopTreeNodeStorePoint())
-        TopTreeSampler::StartComponent();
     }
   }
 
   float max_score = -1;
-  unsigned max_score_var = 0;
+  VariableIndex max_score_var = 0;
   // Select the variable with the highest score as the branch variable
   for (auto it = comp_manager_.superComponentOf(stack_.top()).varsBegin();
        *it != varsSENTINEL; it++) {
@@ -697,15 +602,7 @@ SolverNextAction Solver::backtrack() {
           multiplier = 1;
         else
           multiplier = stack_.on_deck().getSamplerSolutionMultiplier();
-        // The node's model count includes some part of the top's solution multiplier.
-        // So use the above solution multiplier since it is totally disjoint from the top's
-        // solution multiplier.
-        TopTreeSampler::StoreSample(stack_.top().getTotalModelCount(), multiplier,
-                                    literal_stack_, stack_.on_deck().emancipated_vars(),
-                                    TopTreeNodeType::MAX_DEPTH);
       }
-      if (stack_.top().isSecondBranch() && stack_.on_deck().isComponentSplit())
-        TopTreeSampler::CloseComponent(stack_.top().getTotalModelCount());
     }
     set_variable_depth_--;
     assert(set_variable_depth_ >= 0 && set_variable_depth_ <= literal_stack_.size());
@@ -763,16 +660,6 @@ void Solver::ProcessSampleComponentSplitBacktrack() {
         stack_.top().set_cache_sample(cached_sample);
       }
 //      assert(samples_stack_.back().VerifySolutions(statistics_.input_file_, true));  // DebugZH
-    } else if (IsValidTopTreeNodeStorePoint()) {
-      mpz_class actual_multiplier;
-      if (stack_.on_deck().isComponentSplit())
-        actual_multiplier = 1;
-      else
-        actual_multiplier = stack_.on_deck().getSamplerSolutionMultiplier();
-      TopTreeSampler::CloseComponentSplit(StackLevel::componentSplitDepth(),
-                                          stack_.top().getActiveModelCount(),
-                                          stack_.top().getSamplerSolutionMultiplier(),
-                                          actual_multiplier);
     }
     stack_.top().unsetAsComponentSplit();
   }
@@ -793,8 +680,6 @@ void Solver::ProcessSampleComponentSplitBacktrack() {
       samples_stack_.pop_back();
 //      assert(samples_stack_.back().VerifySolutions(statistics_.input_file_, true));  // DebugZH
     }
-    if (IsValidTopTreeNodeStorePoint())
-      TopTreeSampler::CloseComponent(stack_.top().getTotalModelCount());
   }
 }
 
@@ -1403,7 +1288,6 @@ Solver::Solver(int argc, char *argv[]) : final_samples_(0, config_) {
   LinkConfigAndStatistics();
 
   time(&statistics_.start_time_);
-  sampler_stopwatch_.setTimeBound(config_.time_bound_seconds);  // Initialize the time bound.
   config_.num_samples_ = 0;  // By default initialize the model count to zero
   for (int i = 1; i < argc; i++) {
 //    if (strcmp(argv[i], "-noCC") == 0)
@@ -1423,12 +1307,12 @@ Solver::Solver(int argc, char *argv[]) : final_samples_(0, config_) {
       config_.perform_two_pass_sampling_ = true;
     } else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "-out") == 0) {
       if (argc <= i + 1 || !config_.perform_random_sampling_)
-        ExitWithError("Invalid parameters for sampling");
+        ExitInvalidParam("Invalid parameters for sampling");
       if (strcmp(argv[i], "-s") == 0) {
         long num_samples = strtoul(argv[++i], nullptr, STR_DECIMAL_BASE);
         config_.num_samples_ = static_cast<SampleSize>(num_samples);
         if (config_.num_samples_ < 1)
-          ExitWithError("Must sample at least one model");
+          ExitInvalidParam("Must sample at least one model");
       } else {
         config_.samples_output_file = argv[++i];
       }
@@ -1437,21 +1321,19 @@ Solver::Solver(int argc, char *argv[]) : final_samples_(0, config_) {
     } else if (strcmp(argv[i], "-count-only") == 0) {
       config_.perform_random_sampling_ = false;
       if (config_.num_samples_ > 0 || !config_.samples_output_file.empty())
-        ExitWithError("Invalid parameters for counting and sampling");
+        ExitInvalidParam("Invalid parameters for counting and sampling");
     } else if (strcmp(argv[i], "-t") == 0) {
       if (argc <= i + 1)
-        ExitWithError("Time bound missing");
+        ExitInvalidParam("Time bound missing");
       config_.time_bound_seconds = strtoul(argv[++i], nullptr, STR_DECIMAL_BASE);
-//      if (config_.verbose)
-//        std::cout << "Time bound set to" << config_.time_bound_seconds << "s\n";
     } else if (strcmp(argv[i], "-cs") == 0) {
       if (argc <= i + 1)
-        ExitWithError("No cache size specified");
+        ExitInvalidParam("No cache size specified");
       statistics_.maximum_cache_size_bytes_ = strtoul(argv[++i], nullptr, STR_DECIMAL_BASE)
                                               * (uint64_t) 1000000;
     } else if (strcmp(argv[i], "-cnf") == 0) {
       if (argc <= i + 1)
-        ExitWithError("No CNF file specified");
+        ExitInvalidParam("No CNF file specified");
       statistics_.input_file_ = argv[++i];
     } else if (strcmp(argv[i], "-no-partial-fill") == 0) {
       // This is a debug only feature. Functionality is not guaranteed.
@@ -1461,30 +1343,30 @@ Solver::Solver(int argc, char *argv[]) : final_samples_(0, config_) {
     } else if (strcmp(argv[i], "-top-tree-depth") == 0) {
       long top_tree_depth = strtoul(argv[++i], nullptr, STR_DECIMAL_BASE);
       if (top_tree_depth <= 1)
-        ExitWithError("The top tree depth must be greater than 1.");
+        ExitInvalidParam("The top tree depth must be greater than 1.");
       config_.max_top_tree_depth_ = static_cast<TreeNodeIndex>(top_tree_depth);
     } else if (strcmp(argv[i], "-max-leaf-size") == 0) {
       long max_leaf_size = strtoul(argv[++i], nullptr, STR_DECIMAL_BASE);
       if (max_leaf_size <= 1)
-        ExitWithError("The top tree leaf size must be greater than 1.");
+        ExitInvalidParam("The top tree leaf size must be greater than 1.");
       config_.max_top_tree_leaf_sample_count = static_cast<SampleSize>(max_leaf_size);
     } else {
-      ExitWithError(static_cast<std::string>("Unknown parameter found \"") + argv[i] + "\"");
+      ExitInvalidParam(static_cast<std::string>("Unknown parameter found \"") + argv[i] + "\"");
     }
   }
 
   // Perform additional cross-checking of input parameters
   if (config_.quiet && config_.verbose)
-    ExitWithError("Invalid combination of verbose and quiet");
+    ExitInvalidParam("Invalid combination of verbose and quiet");
   if (config_.num_samples_ < 1 && config_.perform_random_sampling_)
-    ExitWithError("If sampling is enabled, a sample count greater than or equal \n"
+    ExitInvalidParam("If sampling is enabled, a sample count greater than or equal \n"
                       "to 1 must be specified.");
   if (config_.perform_two_pass_sampling_ && !config_.perform_random_sampling_)
-    ExitWithError("The two pass sampling flag is only applicable when sampling is enabled.\n");
+    ExitInvalidParam("The two pass sampling flag is only applicable when sampling is enabled.\n");
   if (config_.perform_top_tree_sampling && !config_.perform_random_sampling_)
-    ExitWithError("Top tree sampling cannot be enabled if random sampling is disabled.");
+    ExitInvalidParam("Top tree sampling cannot be enabled if random sampling is disabled.");
   if (config_.disable_samples_write_ && !config_.perform_random_sampling_)
-    ExitWithError("Disabling sample write cannot be selected if sampling is disabled.");
+    ExitInvalidParam("Disabling sample write cannot be selected if sampling is disabled.");
 
   if (config_.samples_output_file.empty() && config_.perform_random_sampling_) {
     std::string input_file = statistics_.input_file_;
@@ -1513,6 +1395,10 @@ Solver::Solver(int argc, char *argv[]) : final_samples_(0, config_) {
   if (config_.perform_two_pass_sampling_ && config_.num_samples_ > 1 && !config_.quiet)
     PrintWarning("The two pass sampling flag only has an effect\n"
                      "when the number of samples equals 1. Ignoring...");
+
+  // Initialize the time bound.
+  sampler_stopwatch_.setTimeBound(config_.time_bound_seconds);
+
   // Any time the same count is larger than one, always do two pass sampling
   if (config_.num_samples_ > 1)
     config_.perform_two_pass_sampling_ = true;

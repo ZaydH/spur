@@ -23,6 +23,8 @@
 #define varsSENTINEL  0
 #define clsSENTINEL   NOT_A_CLAUSE
 
+#define EXIT_TIMEOUT 128
+
 /**
  * Identification numbers for variables.
  */
@@ -52,7 +54,7 @@ static const ClauseIndex NOT_A_CLAUSE(0);
  part of the run statistics in @see DataAndStatistics#
  */
 enum class SolverExitState {
-  NO_STATE, SUCCESS, TIMEOUT//, ABORTED
+  NO_STATE, SUCCESS//, TIMEOUT, ABORTED
 };
 /**
  * Associated with backtracking and whether a conflict is resolved or backtracking is required.
