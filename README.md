@@ -1,6 +1,7 @@
-# SPUR 
+# SPUR - Satisfying Perfectly Uniform Random Sampler
 
-**SPUR** - Published at the [SAT 2018 Conference](http://sat2018.azurewebsites.net/)
+**SPUR** - Published at the [SAT 2018 Conference](http://sat2018.azurewebsites.net/)  
+**Winner of Best Student Paper**
 
 **Title**: Fast Sampling of Perfectly Uniform Satisfying Assignments  
 **Authors**: [Dimitris Achlioptas](https://users.soe.ucsc.edu/~optas/), [Zayd Hammoudeh](https://users.soe.ucsc.edu/~zayd/), and Panos Theodoropoulos
@@ -44,6 +45,10 @@ As explained in our paper, the generated witnesses are represented as tuples.  T
 The second item in the tuple is a variable assignment.  Variables are ordered from 1 to *N*, where *N* is the total number of variables.  Each variable is assigned to either "0", "1", or "\*".  Observe that the "\*" corresponds to an unconstrained variable that can be either "0" or "1".
 
 **Example**: The tuple "3,10\*0\*" means that three witnesses are entailed by the assignment where variable one is 0b1, variables two and four are 0b0, while variables three and five can take either value.
+
+# Python Libraries Available
+
+Python libraries for running the SPUR binary are available upon request.  Email zayd.hammoudeh@gmail.com to request access.  Please include in the email request your name, email address, and institution.
 
 # Special Thanks
 
