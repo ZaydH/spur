@@ -3,10 +3,10 @@
 [![docs](https://readthedocs.org/projects/spur/badge/?version=latest)](http://spur.readthedocs.io/en/latest/?badge=latest)
 [![docs](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ZaydH/spur/blob/master/LICENSE)
 
-**SPUR** - Published at the [SAT 2018 Conference](http://sat2018.azurewebsites.net/)
+**SPUR** - Published at the [SAT 2018 Conference](http://sat2018.azurewebsites.net/)  
 **Winner of Best Student Paper**
 
-**Title**: Fast Sampling of Perfectly Uniform Satisfying Assignments
+**Title**: Fast Sampling of Perfectly Uniform Satisfying Assignments  
 **Authors**: [Dimitris Achlioptas](https://users.soe.ucsc.edu/~optas/), [Zayd Hammoudeh](https://users.soe.ucsc.edu/~zayd/), and Panos Theodoropoulos
 
 SPUR is a fast uniform SAT assignment sampler.  It was presented at SAT-2018.
