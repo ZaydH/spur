@@ -39,3 +39,7 @@ cmake-build-debug/
 # Miscellaneous OS Files
 *.swp
 .DS_Store
+
+# vim Related Files
+tags
+*.swp

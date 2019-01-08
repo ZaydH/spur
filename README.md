@@ -1,12 +1,15 @@
 # SPUR - Satisfying Perfectly Uniform Random Sampler
 
-**SPUR** - Published at the [SAT 2018 Conference](http://sat2018.azurewebsites.net/)  
+[![docs](https://readthedocs.org/projects/spur/badge/?version=latest)](http://spur.readthedocs.io/en/latest/?badge=latest)
+[![docs](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ZaydH/spur/blob/master/LICENSE)
+
+**SPUR** - Published at the [SAT 2018 Conference](http://sat2018.azurewebsites.net/)
 **Winner of Best Student Paper**
 
-**Title**: Fast Sampling of Perfectly Uniform Satisfying Assignments  
+**Title**: Fast Sampling of Perfectly Uniform Satisfying Assignments
 **Authors**: [Dimitris Achlioptas](https://users.soe.ucsc.edu/~optas/), [Zayd Hammoudeh](https://users.soe.ucsc.edu/~zayd/), and Panos Theodoropoulos
 
-SPUR is a fast uniform SAT assignment sampler.  It was presented at SAT-2018. 
+SPUR is a fast uniform SAT assignment sampler.  It was presented at SAT-2018.
 
 # Building and Running the Binary
 
@@ -14,7 +17,7 @@ For user convenience, we have included in the root of this repository a build sc
 
 After building the binary files, SPUR can be run by calling from the command line:
 
-`build\Release\spur -s <#Samples> -cnf <FormulaFile>` 
+`build\Release\spur -s <#Samples> -cnf <FormulaFile>`
 
 where `<#Samples>` is the number of samples to collect (>=1) and `<FormulaFile>` is a path to Boolean CNF formula in DIMACS file format.
 
@@ -40,7 +43,7 @@ The full set of command line options are:
 
 # Output Format
 
-As explained in our paper, the generated witnesses are represented as tuples.  The first item in the tuple is an integer between 1 and the number of samples (inclusive); this number represents the number of witnesses entailed by this tuple.  
+As explained in our paper, the generated witnesses are represented as tuples.  The first item in the tuple is an integer between 1 and the number of samples (inclusive); this number represents the number of witnesses entailed by this tuple.
 
 The second item in the tuple is a variable assignment.  Variables are ordered from 1 to *N*, where *N* is the total number of variables.  Each variable is assigned to either "0", "1", or "\*".  Observe that the "\*" corresponds to an unconstrained variable that can be either "0" or "1".
 
