@@ -427,13 +427,15 @@ void Solver::applyPartialAssignment(const PartialAssignment &partial_assn) {
 
 
 void Solver::solve(const PartialAssignment &partial_assn) {
-  bool notfoundUNSAT = InitializeSolverAndPreprocess(partial_assn);
+  if (createfromFile(this->statistics_.input_file_)) {
+    bool notfoundUNSAT = InitializeSolverAndPreprocess(partial_assn);
 
-  if (notfoundUNSAT) {
-    statistics_.exit_state_ = countSAT();
-    statistics_.set_final_solution_count(stack_.top().getTotalModelCount());
+    if (notfoundUNSAT) {
+      statistics_.exit_state_ = countSAT();
+      statistics_.set_final_solution_count(stack_.top().getTotalModelCount());
 
-    statistics_.num_long_conflict_clauses_ = num_conflict_clauses();
+      statistics_.num_long_conflict_clauses_ = num_conflict_clauses();
+    }
   }
 
   ReportSharpSatResults();
