@@ -85,6 +85,11 @@ struct SolverConfiguration {
    */
   bool debug_mode = false;
   /**
+   * The fixed seed. If -1 then time is used instead.
+   */
+  int fixed_seed = -1;
+
+  /**
    * Stores the maximum execution time of the sampler.
    *
    * Default is approximately 27 hours.

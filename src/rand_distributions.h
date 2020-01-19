@@ -51,7 +51,11 @@ class Random{
         std::cout << "WARNING: Debug mode has a fixed seed for the MPZ class.\n";
       seed = 0;
     } else {
-      seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+      if (master_config_->fixed_seed == -1) {
+        seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+      } else {
+        seed = master_config_->fixed_seed;
+      }
     }
     mpz_class rand_seed;
     mpz_import(rand_seed.get_mpz_t(), 1, -1, sizeof(seed), 0, 0, &seed);
@@ -61,7 +65,11 @@ class Random{
       if (!master_config_->quiet)
         std::cout << "WARNING: Debug mode uses a fixed random number seed." << std::endl;
     } else {
-      Random::rng_ = std::mt19937(Random::rd_());
+      if (master_config_->fixed_seed == -1) {
+        Random::rng_ = std::mt19937(Random::rd_());
+      } else {
+        Random::rng_ = std::mt19937(master_config_->fixed_seed);
+      }
     }
   }
   /**

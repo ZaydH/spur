@@ -56,6 +56,8 @@ int printInputArgumentDescription() {
             << "\t -cnf [cnf_file] Path to the CNF file\n"
             << "\t -s [s] \t Number of models \"s\" to sample uniformly at random\n"
             << "\t -tp    \t Forces two-pass sampling. (Only applicable when s=1)\n"
+            << "\t -seed  \t If set to -1 (default), random seed is current time.\n"
+            << "\t        \t Otherwise, if non-negative, fixes the random seed.\n"
             << "\t -out [out_file] Path to write the specified samples\n"
             << "\t -no-sample-write Disable writing the final samples to a file.\n"
             << "\t -count-only\t Perform only model counting.  Disable sampling.\n"

@@ -1305,6 +1305,10 @@ Solver::Solver(int argc, char *argv[]) : final_samples_(0, config_) {
       config_.verbose = true;
     } else if (strcmp(argv[i], "-d") == 0) {
       config_.debug_mode = true;
+    } else if (strcmp(argv[i], "-seed") == 0) {
+      config_.fixed_seed = strtoul(argv[++i], nullptr, STR_DECIMAL_BASE);;
+      if (config_.fixed_seed < -1)
+        ExitInvalidParam("Fixed seed should be either -1 for seed from current time, or be non-negative");
     } else if (strcmp(argv[i], "-tp") == 0) {
       config_.perform_two_pass_sampling_ = true;
     } else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "-out") == 0) {
