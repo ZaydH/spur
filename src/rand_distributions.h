@@ -18,6 +18,7 @@
 #define PROJECT_RANDOM_H
 
 #include <gmpxx.h>
+#include <limits.h>
 
 #include <chrono> // NOLINT (build/c++11)
 #include <cstdlib>

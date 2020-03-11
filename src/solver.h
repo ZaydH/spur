@@ -55,7 +55,7 @@ class StopWatch {
   bool timeBoundBroken() {
     timeval actual_time = (struct timeval) {0};
     gettimeofday(&actual_time, nullptr);
-    return actual_time.tv_sec - start_time_.tv_sec > time_bound_;
+    return static_cast<uint64_t>(actual_time.tv_sec - start_time_.tv_sec) > time_bound_;
   }
 
   bool start() {
