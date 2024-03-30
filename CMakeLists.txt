@@ -17,6 +17,7 @@ set(CMAKE_CXX_FLAGS_PROFILING "${CMAKE_CXX_FLAGS_PROFILING} -std=c++11 -O3 -g
 IF(UNIX)
   IF(APPLE)
     include_directories(/opt/local/include)
+    include_directories(/opt/homebrew/include)
   ELSE(APPLE)
 
 
